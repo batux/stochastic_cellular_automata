@@ -182,21 +182,3 @@ float StochasticCellularAutomata::calculateHeatAverage(Cell *cell, vector<Cell*>
 	return heatAverage;
 }
 
-void abc() {
-
-	typedef std::chrono::high_resolution_clock Time;
-	typedef std::chrono::duration<float> fsec;
-
-	auto t0 = Time::now();
-	auto t1 = Time::now();
-
-	fsec fs = t1 - t0;
-
-	milliseconds ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
-
-	long val = ms.count();
-
-	cout << val << endl;
-
-}
-
