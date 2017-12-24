@@ -17,14 +17,17 @@ using namespace std;
 class ControlPoint {
 
 public:
-	ControlPoint(unsigned int hashCodeOfCell, int labelValue);
+	ControlPoint(unsigned int hashCodeOfCell, int labelValue, int controlPointType);
 	virtual ~ControlPoint();
 	unsigned int getHashCodeOfCell();
 	int getLabelValue();
+	int getControlPointType();
 
 private:
 	unsigned int hashCodeOfCell;
 	int labelValue;
+	// 1: Test point, 2: Validation point
+	int controlPointType = -1;
 
 };
 

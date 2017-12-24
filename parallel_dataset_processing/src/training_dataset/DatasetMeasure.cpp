@@ -7,9 +7,8 @@
 
 #include "DatasetMeasure.h"
 
-DatasetMeasure::DatasetMeasure(list<Cell*> *allCells) {
+DatasetMeasure::DatasetMeasure() {
 
-	createDatasetMeasures(allCells);
 }
 
 DatasetMeasure::~DatasetMeasure() {

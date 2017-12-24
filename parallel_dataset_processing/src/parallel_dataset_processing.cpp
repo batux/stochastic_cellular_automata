@@ -7,13 +7,12 @@
 //============================================================================
 
 #include "iostream"
+#include "queue"
 #include "file/FileReader.h"
 #include "dataset/Dataset.h"
 #include "dataset/DatasetTemplate.h"
 #include "dataset/CellListProducer.h"
-#include "training_dataset/DatasetMeasure.h"
-#include "training_dataset/CellPositionCalculator.h"
-#include "hashcode_producer/HashcodeProducer.h"
+#include "experiment/ExperimentApplier.h"
 
 using namespace std;
 
@@ -54,8 +53,20 @@ int main() {
 
 	cout << "Cell size: " << cellListForTrainingPhase.size() << endl;
 
+	queue<ExperimentResult> experimentResultQueue;
+	ExperimentApplier *experimentApplier = new ExperimentApplier(dataDimension, &cellListForTrainingPhase);
+
+	for(int i=0; i < 10; i++) {
+		ExperimentResult experimentResult = experimentApplier->run();
+		experimentResultQueue.push(experimentResult);
+	}
+
+	return 0;
+
+/*
 	list<Cell*> *cellListForTrainingPhasePtr = &cellListForTrainingPhase;
-	DatasetMeasure *datasetMeasure = new DatasetMeasure(cellListForTrainingPhasePtr);
+	DatasetMeasure *datasetMeasure = new DatasetMeasure();
+	datasetMeasure->createDatasetMeasures(cellListForTrainingPhasePtr);
 
 	vector<float> minVal = datasetMeasure->getMinimumValues();
 	vector<float> maxVal = datasetMeasure->getMaximumValues();
@@ -71,6 +82,5 @@ int main() {
 		cout << "Index: " << counter << (*cell)->toString() << endl;
 		counter++;
 	}
-
-	return 0;
+*/
 }

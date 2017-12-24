@@ -9,6 +9,7 @@
 #define STOCHASTICCELLULARAUTOMATA_H_
 
 #include "chrono"
+#include "queue"
 #include "../dataset/Cell.h"
 #include "../training_dataset/TrainingDataset.h"
 #include "../hashcode_producer/HashcodeProducer.h"
@@ -24,10 +25,15 @@ public:
 	void heatPropagation(Cell *cell);
 	void stateTransfer(Cell *cell);
 	void run();
+	bool isTimeoutOccured();
+	void setValidationRatio(float validationRatio);
+	float getValidationRatio();
+	float calculateSuccessRatioByValidationPoints();
+	float calculateSuccessRatioByTestPoints();
 
 private:
 	const float heatThreshold = 30.0f;
-	const float validationRatio = 0.95f;
+	float validationRatio = 0.95f;
 
 	TrainingDataset *trainingDataset;
 	HashcodeProducer *hashcodeProducer;
@@ -37,6 +43,11 @@ private:
 	vector<Cell*> findNeighbours(Cell *cell);
 	float calculateHeatAverage(Cell *cell, vector<Cell*> &cells);
 	bool isReachedToStopState(vector<ControlPoint*> &validationControlPoints);
+	void determineStateOfEmptyTestCells();
+	void determineStateOfEmptyValidationCells();
+	void determineStateOfEmptyCells(vector<ControlPoint*> &selectedControlPoints);
+	Cell* findNeighbourCell(Cell *emptyCell);
+	float calculateSuccessRatio(vector<ControlPoint*> &controlPoints);
 };
 
 #endif /* STOCHASTICCELLULARAUTOMATA_H_ */

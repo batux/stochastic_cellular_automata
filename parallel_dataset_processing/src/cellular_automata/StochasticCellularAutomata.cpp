@@ -53,7 +53,10 @@ void StochasticCellularAutomata::run() {
 
 		iterationCount++;
 	}
+}
 
+bool StochasticCellularAutomata::isTimeoutOccured() {
+	return this->timeoutOccured;
 }
 
 bool StochasticCellularAutomata::isReachedToStopState(vector<ControlPoint*> &validationControlPoints) {
@@ -66,7 +69,7 @@ bool StochasticCellularAutomata::isReachedToStopState(vector<ControlPoint*> &val
 
 	for(int i=0; i < validationControlPoints.size(); i++) {
 
-		ControlPoint *controlPoint = validationControlPoints[i];
+		ControlPoint *controlPoint = validationControlPoints.at(i);
 		Cell *cell = this->trainingDataset->findCellByHashCode(controlPoint->getHashCodeOfCell());
 
 		if((cell != NULL) && (cell->getLabelValue() > -1)) {
@@ -94,7 +97,7 @@ void StochasticCellularAutomata::heatPropagation(Cell *cell) {
 
 	// Propagate heat to neighbours!
 	for(int i=0; i < neighbours.size(); i++) {
-		Cell* neighbour = neighbours[i];
+		Cell* neighbour = neighbours.at(i);
 		if (neighbour != NULL && !neighbour->isInitialState()) {
 			neighbour->setPower(heatAverage);
 		}
@@ -109,7 +112,7 @@ void StochasticCellularAutomata::stateTransfer(Cell *cell) {
 
 		for(int i=0; i < neighbours.size(); i++) {
 
-			Cell* neighbour = neighbours[i];
+			Cell* neighbour = neighbours.at(i);
 			if(neighbour != NULL && (neighbour->getLabelValue() < -1) && (neighbour->getPower() > this->heatThreshold)) {
 				neighbour->setLabelValue(cell->getLabelValue());
 				stateTransfer(neighbour);
@@ -172,7 +175,7 @@ float StochasticCellularAutomata::calculateHeatAverage(Cell *cell, vector<Cell*>
 	int neighbourLimit = (2 * this->trainingDataset->getDataDimension()) + 1;
 
 	for(int i=0; i < cells.size(); i++) {
-		Cell *cell = cells[i];
+		Cell *cell = cells.at(i);
 		totalHeatValue += cell->getPower();
 	}
 
@@ -182,3 +185,136 @@ float StochasticCellularAutomata::calculateHeatAverage(Cell *cell, vector<Cell*>
 	return heatAverage;
 }
 
+Cell* StochasticCellularAutomata::findNeighbourCell(Cell *emptyCell) {
+
+	bool foundState = false;
+	Cell* foundNeighbourCell = NULL;
+
+	queue<Cell*> cellQueue;
+	cellQueue.push(emptyCell);
+
+	milliseconds startTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+	long startTimeAsLong = startTimeInMillis.count();
+
+	while(!foundState) {
+
+		Cell *currentNeighbourCell = cellQueue.front();
+		cellQueue.pop();
+
+		vector<Cell*> neighbours = this->findNeighbours(currentNeighbourCell);
+
+		for(int i=0; i < neighbours.size(); i++) {
+			Cell* neighbourCell = neighbours.at(i);
+
+			if(neighbourCell != NULL && (neighbourCell->getLabelValue() >= 0)) {
+				foundNeighbourCell = neighbourCell;
+				break;
+			}
+
+			if(neighbourCell != NULL) {
+				cellQueue.push(neighbourCell);
+			}
+		}
+
+		milliseconds runnigTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+		long runnigTimeAsLong = runnigTimeInMillis.count();
+
+		long timeDiffInMillis = runnigTimeAsLong - startTimeAsLong;
+		int timeDiffInSeconds = (int) (timeDiffInMillis / 1000) % 60 ;
+
+		if(timeDiffInSeconds > 20) {
+			foundState = true;
+		}
+	}
+
+	return foundNeighbourCell;
+}
+
+// alt taraf ile code dublication var!
+float StochasticCellularAutomata::calculateSuccessRatioByValidationPoints() {
+
+	determineStateOfEmptyValidationCells();
+
+	vector<ControlPoint*> validationControlPoints = this->trainingDataset->getValidationControlPoints();
+	return calculateSuccessRatio(validationControlPoints);
+}
+
+float StochasticCellularAutomata::calculateSuccessRatioByTestPoints() {
+
+	determineStateOfEmptyTestCells();
+
+	vector<ControlPoint*> testControlPoints = this->trainingDataset->getTestControlPoints();
+	return calculateSuccessRatio(testControlPoints);
+}
+
+float StochasticCellularAutomata::calculateSuccessRatio(vector<ControlPoint*> &controlPoints) {
+
+	int correctlyClassifiedCellCount = 0;
+	int totalVisitedTestCellCount = 0;
+
+	for(int i=0; i < controlPoints.size(); i++) {
+
+		ControlPoint *controlPoint = controlPoints.at(i);
+
+		if(controlPoint != NULL) {
+			Cell* cell = this->trainingDataset->findCellByHashCode(controlPoint->getHashCodeOfCell());
+
+			if(cell != NULL) {
+				totalVisitedTestCellCount++;
+			}
+			if(cell != NULL && (cell->getLabelValue() >= 0)) {
+				if(cell->getLabelValue() == controlPoint->getLabelValue()) {
+					correctlyClassifiedCellCount++;
+				}
+			}
+		}
+	}
+
+	if(totalVisitedTestCellCount == 0) {
+		return 0.0f;
+	}
+
+	float succesRatio = ((float) correctlyClassifiedCellCount) / ((float) totalVisitedTestCellCount);
+	return succesRatio;
+}
+
+// code dublication var !
+void StochasticCellularAutomata::determineStateOfEmptyValidationCells() {
+
+	vector<ControlPoint*> selectedControlPoints = this->trainingDataset->getValidationControlPoints();
+	determineStateOfEmptyCells(selectedControlPoints);
+}
+
+void StochasticCellularAutomata::determineStateOfEmptyTestCells() {
+
+	vector<ControlPoint*> selectedControlPoints = this->trainingDataset->getTestControlPoints();
+	determineStateOfEmptyCells(selectedControlPoints);
+}
+
+void StochasticCellularAutomata::determineStateOfEmptyCells(vector<ControlPoint*> &selectedControlPoints) {
+
+	for(int i=0; i < selectedControlPoints.size(); i++) {
+
+		ControlPoint* controlPoint = selectedControlPoints.at(i);
+
+		if(controlPoint != NULL) {
+
+			Cell* cell = this->trainingDataset->findCellByHashCode(controlPoint->getHashCodeOfCell());
+
+			if(cell != NULL && (cell->getLabelValue() < 0)) {
+
+				// Determine the state of cell from neighbours
+				Cell *neighbourCell = findNeighbourCell(cell);
+				cell->setLabelValue(neighbourCell->getLabelValue());
+			}
+		}
+	}
+}
+
+void StochasticCellularAutomata::setValidationRatio(float validationRatio) {
+	this->validationRatio = validationRatio;
+}
+
+float StochasticCellularAutomata::getValidationRatio() {
+	return this->validationRatio;
+}

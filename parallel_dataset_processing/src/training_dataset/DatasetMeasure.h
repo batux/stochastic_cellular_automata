@@ -17,8 +17,9 @@ using namespace std;
 class DatasetMeasure {
 
 public:
-	DatasetMeasure(list<Cell*> *allCells);
+	DatasetMeasure();
 	virtual ~DatasetMeasure();
+	void createDatasetMeasures(list<Cell*> *allCells);
 	vector<float> getRangeValues();
 	vector<float> getMinimumValues();
 	vector<float> getMaximumValues();
@@ -30,7 +31,6 @@ private:
 	const int MIN_INIT_VALUE = numeric_limits<int>::max();
 	const int MAX_INIT_VALUE = numeric_limits<int>::min();
 
-	void createDatasetMeasures(list<Cell*> *allCells);
 	void initializeDatasetMeasureVectors(int dimension);
 };
 

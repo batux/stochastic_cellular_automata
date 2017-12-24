@@ -7,9 +7,10 @@
 
 #include "ControlPoint.h"
 
-ControlPoint::ControlPoint(unsigned int hashCodeOfCell, int labelValue) {
+ControlPoint::ControlPoint(unsigned int hashCodeOfCell, int labelValue, int controlPointType) {
 	this->hashCodeOfCell = hashCodeOfCell;
 	this->labelValue = labelValue;
+	this->controlPointType = controlPointType;
 }
 
 ControlPoint::~ControlPoint() {
@@ -24,3 +25,6 @@ int ControlPoint::getLabelValue() {
 	return this->labelValue;
 }
 
+int ControlPoint::getControlPointType() {
+	return this->controlPointType;
+}

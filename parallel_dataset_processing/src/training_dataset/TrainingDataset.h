@@ -30,8 +30,12 @@ public:
 	Cell* findCellByHashCode(unsigned int hashCode);
 	void createTrainingset();
 	Cell* selectRandomCell();
+	list<Cell*>* getAllInitialCells();
 	vector<ControlPoint*> getValidationControlPoints();
 	vector<ControlPoint*> getTestControlPoints();
+	vector<ControlPoint*> getSelectedControlPointList();
+	void clearControlPoints();
+	void clearCellsOfExperiment();
 
 private:
 
@@ -41,11 +45,12 @@ private:
 	vector<Cell*> createdCellsInExperiment;
 	vector<ControlPoint*> testControlPoints;
 	vector<ControlPoint*> validationControlPoints;
+	vector<ControlPoint*> selectedControlPointList;
 	vector<int> selectedControlPointIndexList;
 	void prepareInitialCells();
 	void prepareTestControlPoints();
 	void prepareValidationControlPoints();
-	void prepareControlPoints(vector<ControlPoint*> &controlPoints);
+	void prepareControlPoints(vector<ControlPoint*> &controlPoints, int controlPointType);
 
 };
 
