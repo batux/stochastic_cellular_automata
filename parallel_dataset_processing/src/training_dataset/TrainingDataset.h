@@ -25,24 +25,32 @@ class TrainingDataset {
 public:
 	TrainingDataset(int dataDimension, list<Cell*> *allInitialCells);
 	virtual ~TrainingDataset();
-	void addCellInExperiment(Cell* cell);
+	//void addCellInExperiment(Cell* cell);
+	void addCellToInitialCells(Cell* cell);
+	void addCellToSelectableCells(Cell* cell);
 	int getDataDimension();
-	Cell* findCellByHashCode(unsigned int hashCode);
+	Cell* findCellByHashCode( int hashCode);
+	Cell* findNeighbourCellByHashCode( int hashCode);
 	void createTrainingset();
-	Cell* selectRandomCell();
+	Cell* selectRandomCell(int randValue);
 	list<Cell*>* getAllInitialCells();
 	vector<ControlPoint*> getValidationControlPoints();
 	vector<ControlPoint*> getTestControlPoints();
 	vector<ControlPoint*> getSelectedControlPointList();
 	void clearControlPoints();
 	void clearCellsOfExperiment();
+	//void putCellToMap(Cell* cell);
+	//Cell* getCellFromMap( int hashCode);
 
 private:
 
 	int dataDimension;
+	//unordered_map< int, vector<Cell*>> cellMap;
 	list<Cell*> *allInitialCells;
 	vector<Cell*> initialCells;
-	vector<Cell*> createdCellsInExperiment;
+	vector<Cell*> initialPoints;
+	vector<Cell*> selectableCells;
+//	vector<Cell*> createdCellsInExperiment;
 	vector<ControlPoint*> testControlPoints;
 	vector<ControlPoint*> validationControlPoints;
 	vector<ControlPoint*> selectedControlPointList;
@@ -50,7 +58,9 @@ private:
 	void prepareInitialCells();
 	void prepareTestControlPoints();
 	void prepareValidationControlPoints();
+	bool hasSubCellListByHashcode( int &hashCode);
 	void prepareControlPoints(vector<ControlPoint*> &controlPoints, int controlPointType);
+	void prepareInitialPoints();
 
 };
 

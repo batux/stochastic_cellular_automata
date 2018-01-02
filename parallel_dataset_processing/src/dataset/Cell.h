@@ -27,7 +27,7 @@ public:
 	vector<int> getPositions();
 	void setPositions(vector<int> positions);
 	string toString();
-	unsigned int getHashCode();
+	int getHashCode();
 	void clearPositionList();
 	void setPower(float power);
 	float getPower();
@@ -37,10 +37,9 @@ public:
 	int getLabelValue();
 	void prepareCellForExperiment();
 
-
 private:
 
-	unsigned int hashCodeValue;
+	int hashCodeValue;
 	float power;
 	bool initialState;
 	int labelValueForExperiment;

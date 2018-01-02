@@ -16,9 +16,9 @@ HashcodeProducer::~HashcodeProducer() {
 	// TODO Auto-generated destructor stub
 }
 
-unsigned int HashcodeProducer::createHashCode(vector<int> &positions) {
+int HashcodeProducer::createHashCode(vector<int> &positions) {
 
-	unsigned int value = 0 ;
+	int value = 0 ;
 
 	string positionsAsText = preparePositionsAsText(positions);
 
@@ -27,6 +27,18 @@ unsigned int HashcodeProducer::createHashCode(vector<int> &positions) {
 	}
 
 	return value;
+//
+//	 int h = hash;
+//	        if (h == 0 && value.length > 0) {
+//	            char val[] = value;
+//
+//	            for (int i = 0; i < value.length; i++) {
+//	                h = 31 * h + val[i];
+//	            }
+//	            hash = h;
+//	        }
+//	        return h;
+
 }
 
 string HashcodeProducer::preparePositionsAsText(vector<int> &positions) {

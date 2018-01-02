@@ -19,7 +19,7 @@ class HashcodeProducer {
 public:
 	HashcodeProducer();
 	virtual ~HashcodeProducer();
-	unsigned int createHashCode(vector<int> &positions);
+	int createHashCode(vector<int> &positions);
 
 private:
 	string preparePositionsAsText(vector<int> &positions);

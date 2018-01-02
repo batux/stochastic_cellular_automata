@@ -35,6 +35,8 @@ Cell* CellPositionCalculator::calculatePositionsForCell(int &rangeLength, Cell* 
 
 	list<float> dataItems = cell->getDataRow()->getDataItemList();
 
+	vector<int> tmpPositions;
+
 	int counter = 0;
 	for(list<float>::iterator dataItem = dataItems.begin(); dataItem != dataItems.end(); dataItem++) {
 
@@ -44,10 +46,12 @@ Cell* CellPositionCalculator::calculatePositionsForCell(int &rangeLength, Cell* 
 			position = position - 1;
 		}
 
-		cell->getPositions().push_back(position);
+		tmpPositions.push_back(position);
 
 		counter++;
 	}
+
+	cell->setPositions(tmpPositions);
 
 	return cell;
 }

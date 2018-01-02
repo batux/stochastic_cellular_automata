@@ -26,33 +26,38 @@ void StochasticCellularAutomata::run() {
 	milliseconds startTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 	long startTimeAsLong = startTimeInMillis.count();
 
+	srand((int)time(0));
+
 	while(runFlag) {
 
-		Cell *cellForHeatPropagation = this->trainingDataset->selectRandomCell();
+		Cell *cellForHeatPropagation = this->trainingDataset->selectRandomCell(rand());
 		heatPropagation(cellForHeatPropagation);
 
-		Cell *cellForStateTransfer = this->trainingDataset->selectRandomCell();
+		Cell *cellForStateTransfer = this->trainingDataset->selectRandomCell(rand());
 		stateTransfer(cellForStateTransfer);
 
 		if ((iterationCount % 10) == 0) {
 
 			vector<ControlPoint*> validationControlPoints = this->trainingDataset->getValidationControlPoints();
-			runFlag = isReachedToStopState(validationControlPoints);
+			runFlag = !isReachedToStopState(validationControlPoints);
 
-			milliseconds runnigTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-			long runnigTimeAsLong = runnigTimeInMillis.count();
-
-			long timeDiffInMillis = runnigTimeAsLong - startTimeAsLong;
-			int timeDiffInSeconds = (int) (timeDiffInMillis / 1000) % 60 ;
-
-			if(timeDiffInSeconds > 20) {
-				runFlag = false;
-				this->timeoutOccured = true;
-			}
+//			milliseconds runnigTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+//			long runnigTimeAsLong = runnigTimeInMillis.count();
+//
+//			long timeDiffInMillis = runnigTimeAsLong - startTimeAsLong;
+//			int timeDiffInSeconds = (int) (timeDiffInMillis / 1000) % 60 ;
+//
+//			if(timeDiffInSeconds > 20) {
+//				runFlag = false;
+//				this->timeoutOccured = true;
+//			}
 		}
 
 		iterationCount++;
 	}
+
+	// TODO: For test we will remove this line!!!
+	this->timeoutOccured = true;
 }
 
 bool StochasticCellularAutomata::isTimeoutOccured() {
@@ -88,41 +93,110 @@ bool StochasticCellularAutomata::isReachedToStopState(vector<ControlPoint*> &val
 
 void StochasticCellularAutomata::heatPropagation(Cell *cell) {
 
-	vector<Cell*> neighbours = findNeighbours(cell);
-	float heatAverage = calculateHeatAverage(cell, neighbours);
+	if (cell != NULL && cell->getPower() >= 30) {
 
-	if(!cell->isInitialState()) {
-		cell->setPower(heatAverage);
-	}
+		vector<Cell*> neighbours = findNeighbours(cell);
+		float heatAverage = calculateHeatAverage(cell, neighbours);
 
-	// Propagate heat to neighbours!
-	for(int i=0; i < neighbours.size(); i++) {
-		Cell* neighbour = neighbours.at(i);
-		if (neighbour != NULL && !neighbour->isInitialState()) {
-			neighbour->setPower(heatAverage);
+		if(!cell->isInitialState()) {
+			cell->setPower(heatAverage);
+		}
+
+		// Propagate heat to neighbours!
+		for(int i=0; i < neighbours.size(); i++) {
+			Cell* neighbour = neighbours.at(i);
+			if (neighbour != NULL && !neighbour->isInitialState()) {
+				neighbour->setPower(heatAverage);
+			}
 		}
 	}
 }
 
 void StochasticCellularAutomata::stateTransfer(Cell *cell) {
 
-	if (cell != NULL && (cell->getLabelValue() >= 0) && (cell->getPower() > this->heatThreshold)) {
+	queue<Cell*> cellQueue;
+	cellQueue.push(cell);
 
-		vector<Cell*> neighbours = findNeighbours(cell);
+	while(cellQueue.size() > 0) {
 
-		for(int i=0; i < neighbours.size(); i++) {
+		Cell *currentNeighbourCell = cellQueue.front();
+		cellQueue.pop();
 
-			Cell* neighbour = neighbours.at(i);
-			if(neighbour != NULL && (neighbour->getLabelValue() < -1) && (neighbour->getPower() > this->heatThreshold)) {
-				neighbour->setLabelValue(cell->getLabelValue());
-				stateTransfer(neighbour);
+		if (currentNeighbourCell != NULL && (currentNeighbourCell->getLabelValue() >= 0) && (currentNeighbourCell->getPower() > this->heatThreshold)) {
+
+			vector<Cell*> neighbours = findNeighbours(currentNeighbourCell);
+
+			for(int i=0; i < neighbours.size(); i++) {
+
+				Cell* neighbour = neighbours.at(i);
+				if(neighbour != NULL && (neighbour->getLabelValue() < 0) && (neighbour->getPower() > this->heatThreshold)) {
+					neighbour->setLabelValue(currentNeighbourCell->getLabelValue());
+					cellQueue.push(neighbour);
+
+					if(neighbour->isInitialState()) {
+
+						vector<ControlPoint*> validationControlPoints = this->trainingDataset->getValidationControlPoints();
+
+						for(int i=0; i < validationControlPoints.size(); i++) {
+
+							ControlPoint *controlPoint = validationControlPoints.at(i);
+
+							if(controlPoint->getHashCodeOfCell() == neighbour->getHashCode()) {
+								cout << "CHANGED VALIDATION POINT (EXPECTED): " << controlPoint->getLabelValue() << endl;
+								cout << "CHANGED VALIDATION POINT (ACTUAL): " << neighbour->getLabelValue() << endl;
+							}
+						}
+					}
+
+				}
 			}
 		}
 	}
 }
 
 // Helper functions for SCA!
-Cell* StochasticCellularAutomata::findNeighbour(vector<int> positionsOfCenterCell, int neighbourSideIndex) {
+Cell* StochasticCellularAutomata::findNeighbour(vector<int> positionsOfCenterCell) {
+
+	// Create hashcode from new position and check it in cell list!
+
+	int hashCode = this->hashcodeProducer->createHashCode(positionsOfCenterCell);
+
+	Cell *cell = this->trainingDataset->findNeighbourCellByHashCode(hashCode);
+
+	return cell;
+}
+
+vector<Cell*> StochasticCellularAutomata::findNeighbours(Cell *cell) {
+
+	vector<Cell*> neighbours;
+
+	int neighbourLimit = 2 * this->trainingDataset->getDataDimension();
+
+	for (int neighbourSideIndex = 0; neighbourSideIndex < neighbourLimit; neighbourSideIndex++) {
+
+		vector<int> positions = cell->getPositions();
+
+		if(positions.size() == 0) {
+			cout << "WARNING Empty position list!" << endl;
+		}
+
+		vector<int> positionsOfNeighbour = preparePositionsOfNeighbour(positions, neighbourSideIndex);
+
+		Cell *neighbourCell = findNeighbour(positionsOfNeighbour);
+
+		if(neighbourCell == NULL) {
+			neighbourCell = new Cell(positionsOfNeighbour, false, this->hashcodeProducer);
+			this->trainingDataset->addCellToInitialCells(neighbourCell);
+			this->trainingDataset->addCellToSelectableCells(neighbourCell);
+		}
+
+		neighbours.push_back(neighbourCell);
+	}
+
+	return neighbours;
+}
+
+vector<int> StochasticCellularAutomata::preparePositionsOfNeighbour(vector<int> positionsOfCenterCell, int neighbourSideIndex) {
 
 	int indexDelta = 1;
 
@@ -136,36 +210,7 @@ Cell* StochasticCellularAutomata::findNeighbour(vector<int> positionsOfCenterCel
 
 	positionsOfCenterCell[positionIndexOfNeighbour] += indexDelta;
 
-	// Create hashcode from new position and check it in cell list!
-
-	unsigned int hashCode = this->hashcodeProducer->createHashCode(positionsOfCenterCell);
-
-	Cell *cell = this->trainingDataset->findCellByHashCode(hashCode);
-
-	if(cell == NULL) {
-		cell = new Cell(positionsOfCenterCell, false, this->hashcodeProducer);
-	}
-
-	return cell;
-}
-
-vector<Cell*> StochasticCellularAutomata::findNeighbours(Cell *cell) {
-
-	vector<Cell*> neighbours;
-
-	int neighbourLimit = 2 * this->trainingDataset->getDataDimension();
-
-	for (int neighbourSideIndex = 0; neighbourSideIndex < neighbourLimit; neighbourSideIndex++) {
-
-		Cell *cell = findNeighbour(cell->getPositions(), neighbourSideIndex);
-
-		if(cell != NULL) {
-			this->trainingDataset->addCellInExperiment(cell);
-			neighbours.push_back(cell);
-		}
-	}
-
-	return neighbours;
+	return positionsOfCenterCell;
 }
 
 float StochasticCellularAutomata::calculateHeatAverage(Cell *cell, vector<Cell*> &cells) {

@@ -21,10 +21,6 @@ int TrainingDataset::getDataDimension() {
 	return this->dataDimension;
 }
 
-void TrainingDataset::addCellInExperiment(Cell* cell) {
-	this->createdCellsInExperiment.push_back(cell);
-}
-
 vector<ControlPoint*> TrainingDataset::getValidationControlPoints() {
 	return this->validationControlPoints;
 }
@@ -41,10 +37,24 @@ vector<ControlPoint*> TrainingDataset::getSelectedControlPointList() {
 	return this->selectedControlPointList;
 }
 
+void TrainingDataset::addCellToInitialCells(Cell* cell) {
+	this->initialCells.push_back(cell);
+}
+
+void TrainingDataset::addCellToSelectableCells(Cell* cell) {
+	this->selectableCells.push_back(cell);
+}
+
 void TrainingDataset::clearCellsOfExperiment() {
 
 	this->initialCells.clear();
-	this->createdCellsInExperiment.clear();
+	vector<Cell*>(this->initialCells).swap(this->initialCells);
+
+	this->initialPoints.clear();
+	vector<Cell*>(this->initialPoints).swap(this->initialPoints);
+
+	this->selectableCells.clear();
+	vector<Cell*>(this->selectableCells).swap(this->selectableCells);
 }
 
 void TrainingDataset::clearControlPoints() {
@@ -59,40 +69,41 @@ void TrainingDataset::clearControlPoints() {
 	vector<ControlPoint*>(this->selectedControlPointList).swap(this->selectedControlPointList);
 }
 
-Cell* TrainingDataset::selectRandomCell() {
+Cell* TrainingDataset::selectRandomCell(int randValue) {
 
-	int randomCellSelectionLimit = this->initialCells.size() + this->createdCellsInExperiment.size();
+	int randomCellSelectionLimit = this->selectableCells.size();
 
-	srand((int)time(0));
-	int randomlySelectedCellIndex = rand() % randomCellSelectionLimit;
+	int randomlySelectedCellIndex = randValue % randomCellSelectionLimit;
 
-	if(randomlySelectedCellIndex < this->initialCells.size()) {
-		return this->initialCells[randomlySelectedCellIndex];
-	}
-	else {
-		randomlySelectedCellIndex = randomlySelectedCellIndex - this->initialCells.size();
-		return this->createdCellsInExperiment[randomlySelectedCellIndex];
-	}
+	cout << "RANDOMLY SELECTED INDEX : " << randomlySelectedCellIndex << endl;
 
+	return this->initialCells[randomlySelectedCellIndex];
 }
 
-Cell* TrainingDataset::findCellByHashCode(unsigned int hashCode) {
+Cell* TrainingDataset::findCellByHashCode(int hashCode) {
 
 	Cell *foundCell = NULL;
 
-	for(list<Cell*>::iterator cell = this->allInitialCells->begin(); cell != this->allInitialCells->end(); cell++) {
+	for(vector<Cell*>::iterator cell = this->initialCells.begin(); cell != this->initialCells.end(); cell++) {
 
 		if(hashCode == (*cell)->getHashCode()) {
 			foundCell = (*cell);
-			break;
+			return foundCell;
 		}
 	}
 
-	for(vector<Cell*>::iterator cell = this->createdCellsInExperiment.begin(); cell != this->createdCellsInExperiment.end(); cell++) {
+	return foundCell;
+}
+
+Cell* TrainingDataset::findNeighbourCellByHashCode(int hashCode) {
+
+	Cell *foundCell = NULL;
+
+	for(vector<Cell*>::iterator cell = this->initialCells.begin(); cell != this->initialCells.end(); cell++) {
 
 		if(hashCode == (*cell)->getHashCode()) {
 			foundCell = (*cell);
-			break;
+			return foundCell;
 		}
 	}
 
@@ -102,6 +113,7 @@ Cell* TrainingDataset::findCellByHashCode(unsigned int hashCode) {
 void TrainingDataset::createTrainingset() {
 
 	prepareTestControlPoints();
+	prepareInitialPoints();
 	prepareValidationControlPoints();
 	prepareInitialCells();
 
@@ -109,29 +121,66 @@ void TrainingDataset::createTrainingset() {
 	vector<int>(this->selectedControlPointIndexList).swap(this->selectedControlPointIndexList);
 }
 
+void TrainingDataset::prepareInitialPoints() {
+
+	int counter = 0;
+	for(list<Cell*>::iterator cell = this->allInitialCells->begin(); cell != this->allInitialCells->end(); cell++) {
+
+		if(find(this->selectedControlPointIndexList.begin(),
+						   this->selectedControlPointIndexList.end(), counter) == this->selectedControlPointIndexList.end()) {
+			this->initialPoints.push_back((*cell));
+		}
+		counter++;
+	}
+}
+
 void TrainingDataset::prepareInitialCells() {
+	// TODO: selectedControlPointList Bu listeyi ekrana yazdır.
+	int counter = 0;
+	vector<int> uniqueHashCodeList;
 
 	for(list<Cell*>::iterator cell = this->allInitialCells->begin(); cell != this->allInitialCells->end(); cell++) {
 
 		int currentHashCode = (*cell)->getHashCode();
 
 		bool hasCurrentHashcode = false;
-		for(int i=0; i < this->selectedControlPointList.size(); i++) {
 
-			ControlPoint *controlPoint = this->selectedControlPointList[i];
-
-			if(currentHashCode == controlPoint->getHashCodeOfCell() &&
-			   controlPoint->getControlPointType() == 1) {
-
+		for(vector<int>::iterator hashCodeIterator = uniqueHashCodeList.begin(); hashCodeIterator != uniqueHashCodeList.end(); hashCodeIterator++) {
+			if(currentHashCode == (*hashCodeIterator)) {
 				hasCurrentHashcode = true;
 				break;
 			}
 		}
 
-		if(!hasCurrentHashcode) {
-			this->initialCells.push_back((*cell));
+		bool hasInitialPoint = false;
+
+		for(vector<Cell*>::iterator pointIterator = this->initialPoints.begin(); pointIterator != this->initialPoints.end(); pointIterator++) {
+
+			if((*pointIterator) == (*cell)) {
+				hasInitialPoint = true;
+				break;
+			}
+		}
+
+		if(hasInitialPoint) {
+			if(!hasCurrentHashcode) {
+				this->initialCells.push_back((*cell));
+				this->selectableCells.push_back((*cell));
+				uniqueHashCodeList.push_back(currentHashCode);
+			}
+			else {
+				(*cell)->setPower((*cell)->getPower() + 100.0f);
+			}
+		}
+		else {
+			if(!hasCurrentHashcode) {
+				this->initialCells.push_back((*cell));
+				uniqueHashCodeList.push_back(currentHashCode);
+			}
 		}
 	}
+
+	cout << "ALL INITIAL WAS SCANNED : " << counter << endl;
 }
 
 void TrainingDataset::prepareTestControlPoints() {
@@ -145,19 +194,21 @@ void TrainingDataset::prepareValidationControlPoints() {
 void TrainingDataset::prepareControlPoints(vector<ControlPoint*> &controlPoints, int controlPointType) {
 
 	int allCellListSize = this->allInitialCells->size();
-	int testControlPointListSize = this->dataDimension * (0.2);
+	int testControlPointListSize = allCellListSize * (0.2);
+
+	srand((int)time(0));
 
 	for(int i=0; i < testControlPointListSize; i++) {
 
-		srand((int)time(0));
 		int randomlySelectedCellIndex = rand() % allCellListSize;
 
 		while(find(this->selectedControlPointIndexList.begin(),
 				   this->selectedControlPointIndexList.end(), randomlySelectedCellIndex) != this->selectedControlPointIndexList.end()) {
 
-			srand((int)time(0));
 			randomlySelectedCellIndex = rand() % allCellListSize;
 		}
+
+		//cout << randomlySelectedCellIndex << "_" << controlPointType << endl;
 
 		list<Cell*>::iterator cellIterator = this->allInitialCells->begin();
 		advance(cellIterator, randomlySelectedCellIndex);
@@ -172,3 +223,38 @@ void TrainingDataset::prepareControlPoints(vector<ControlPoint*> &controlPoints,
 		this->selectedControlPointIndexList.push_back(randomlySelectedCellIndex);
 	}
 }
+
+
+/*
+void TrainingDataset::putCellToMap(Cell* cell) {
+
+	int hashCode = cell->getHashCode();
+
+	bool existSubCellList = hasSubCellListByHashcode(hashCode);
+
+	if(existSubCellList) {
+		vector<Cell*> subCellList = this->cellMap.at(hashCode);
+		subCellList.push_back(cell);
+	}
+	else {
+		vector<Cell*> newSubCellList;
+		newSubCellList.push_back(cell);
+		this->cellMap.insert({ hashCode, newSubCellList });
+	}
+}
+
+Cell* TrainingDataset::getCellFromMap(int hashCode) {
+
+}
+
+bool TrainingDataset::hasSubCellListByHashcode(int &hashCode) {
+
+	auto iterator = this->cellMap.find(hashCode);
+    if (iterator == this->cellMap.end()) {
+    	return false;
+    }
+
+    return true;
+}
+
+*/

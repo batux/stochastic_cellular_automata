@@ -10,6 +10,7 @@
 
 #include "chrono"
 #include "queue"
+#include "vector"
 #include "../dataset/Cell.h"
 #include "../training_dataset/TrainingDataset.h"
 #include "../hashcode_producer/HashcodeProducer.h"
@@ -39,7 +40,7 @@ private:
 	HashcodeProducer *hashcodeProducer;
 	bool timeoutOccured = false;
 
-	Cell* findNeighbour(vector<int> positionsOfCenterCell, int neighbourSideIndex);
+	Cell* findNeighbour(vector<int> positionsOfCenterCell);
 	vector<Cell*> findNeighbours(Cell *cell);
 	float calculateHeatAverage(Cell *cell, vector<Cell*> &cells);
 	bool isReachedToStopState(vector<ControlPoint*> &validationControlPoints);
@@ -48,6 +49,7 @@ private:
 	void determineStateOfEmptyCells(vector<ControlPoint*> &selectedControlPoints);
 	Cell* findNeighbourCell(Cell *emptyCell);
 	float calculateSuccessRatio(vector<ControlPoint*> &controlPoints);
+	vector<int> preparePositionsOfNeighbour(vector<int> positionsOfCenterCell, int neighbourSideIndex);
 };
 
 #endif /* STOCHASTICCELLULARAUTOMATA_H_ */

@@ -25,9 +25,9 @@ int main() {
 	// (*fileReader).printAllLines(lines);
 
 	list<int> columnIndexes;
-	columnIndexes.push_back(2);
-	columnIndexes.push_back(3);
 	columnIndexes.push_back(4);
+	columnIndexes.push_back(7);
+	columnIndexes.push_back(9);
 	columnIndexes.push_back(12);
 	columnIndexes.push_back(13);
 
@@ -44,7 +44,7 @@ int main() {
 	cout << "Dataset printing process..." << endl;
 	dataSet->printAllDataRows();
 
-	int dataDimension = dataSet->getDatasetTemplate()->getDimension();
+	int dataDimension = datasetTemplate->getColumnIndexes().size();
 
 	HashcodeProducer *hashcodeProducer = new HashcodeProducer();
 
@@ -62,25 +62,4 @@ int main() {
 	}
 
 	return 0;
-
-/*
-	list<Cell*> *cellListForTrainingPhasePtr = &cellListForTrainingPhase;
-	DatasetMeasure *datasetMeasure = new DatasetMeasure();
-	datasetMeasure->createDatasetMeasures(cellListForTrainingPhasePtr);
-
-	vector<float> minVal = datasetMeasure->getMinimumValues();
-	vector<float> maxVal = datasetMeasure->getMaximumValues();
-	vector<float> rangeVal = datasetMeasure->getRangeValues();
-
-	int rangeLength = 10;
-
-	CellPositionCalculator *cellPositionCalculator = new CellPositionCalculator();
-	cellListForTrainingPhasePtr = cellPositionCalculator->calculatePositionsForEachCell(rangeLength, cellListForTrainingPhasePtr, datasetMeasure);
-
-	int counter = 1;
-	for(list<Cell*>::iterator cell = cellListForTrainingPhase.begin(); cell != cellListForTrainingPhase.end(); cell++) {
-		cout << "Index: " << counter << (*cell)->toString() << endl;
-		counter++;
-	}
-*/
 }

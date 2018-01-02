@@ -25,6 +25,7 @@ Cell::Cell(vector<int> positions, bool initialState, HashcodeProducer *hashcodeP
 	this->dataRow = NULL;
 	this->hashcodeProducer = hashcodeProducer;
 	this->labelValueForExperiment = -1;
+	this->positions = positions;
 }
 
 Cell::~Cell() {
@@ -69,9 +70,11 @@ void Cell::prepareCellForExperiment() {
 	this->labelValueForExperiment = this->dataRow->getLabelValue();
 	// Clear positions for new experiment!
 	clearPositionList();
+
+	this->hashCodeValue = 0;
 }
 
-unsigned int Cell::getHashCode() {
+int Cell::getHashCode() {
 
 	if(this->hashCodeValue == 0) {
 		this->hashCodeValue = this->hashcodeProducer->createHashCode(this->positions);

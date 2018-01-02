@@ -41,7 +41,7 @@ void ExperimentApplier::adjustInitialRangeLengths() {
 	this->rangeLength = 10;
 	this->maxRangeLength = 20;
 
-	if(this->trainingDataset->getDataDimension()) {
+	if(this->trainingDataset->getDataDimension() < 5) {
 		this->rangeLength = 20;
 		this->maxRangeLength = 30;
 	}
@@ -120,6 +120,10 @@ ExperimentResult ExperimentApplier::run() {
 	ExperimentResult *experimentResult = new ExperimentResult();
 
 	adjustInitialRangeLengths();
+
+	prepareCellsForExperiment();
+
+	this->stochasticCellularAutomata->run();
 
 	float succesRatioByValidationPoints = adjustValidationRatio();
 
