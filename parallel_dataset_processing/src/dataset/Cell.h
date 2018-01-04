@@ -31,7 +31,7 @@ public:
 	void clearPositionList();
 	void setPower(float power);
 	float getPower();
-	void setInitialState();
+	void setInitialState(bool initialState);
 	bool isInitialState();
 	void setLabelValue(int labelValue);
 	int getLabelValue();

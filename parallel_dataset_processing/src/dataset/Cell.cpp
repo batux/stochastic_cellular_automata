@@ -11,7 +11,7 @@ Cell::Cell(DataRow* clonedDatarow, HashcodeProducer *hascodeProducer) {
 	this->hashCodeValue = 0;
 	// Initial power value for each initial cell,
 	// Validation and Test cells will have "0" power value!
-	this->power = 100;
+	this->power = 100.0f;
 	this->initialState = true;
 	this->dataRow = clonedDatarow;
 	this->hashcodeProducer = hascodeProducer;
@@ -56,6 +56,10 @@ int Cell::getLabelValue() {
 	return this->labelValueForExperiment;
 }
 
+void Cell::setInitialState(bool initialState) {
+	this->initialState = initialState;
+}
+
 bool Cell::isInitialState() {
 	return this->initialState;
 }
@@ -66,8 +70,13 @@ DataRow* Cell::getDataRow() {
 
 void Cell::prepareCellForExperiment() {
 
+	this->power = 100.0f;
+
+	this->initialState = true;
+
 	// Set origin label value from data set which is in RAM!
 	this->labelValueForExperiment = this->dataRow->getLabelValue();
+
 	// Clear positions for new experiment!
 	clearPositionList();
 

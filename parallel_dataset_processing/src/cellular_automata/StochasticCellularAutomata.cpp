@@ -41,23 +41,20 @@ void StochasticCellularAutomata::run() {
 			vector<ControlPoint*> validationControlPoints = this->trainingDataset->getValidationControlPoints();
 			runFlag = !isReachedToStopState(validationControlPoints);
 
-//			milliseconds runnigTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-//			long runnigTimeAsLong = runnigTimeInMillis.count();
-//
-//			long timeDiffInMillis = runnigTimeAsLong - startTimeAsLong;
-//			int timeDiffInSeconds = (int) (timeDiffInMillis / 1000) % 60 ;
-//
-//			if(timeDiffInSeconds > 20) {
-//				runFlag = false;
-//				this->timeoutOccured = true;
-//			}
+			milliseconds runnigTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+			long runnigTimeAsLong = runnigTimeInMillis.count();
+
+			long timeDiffInMillis = runnigTimeAsLong - startTimeAsLong;
+			int timeDiffInSeconds = (int) (timeDiffInMillis / 1000) % 60 ;
+
+			if(timeDiffInSeconds > 20) {
+				runFlag = false;
+				this->timeoutOccured = true;
+			}
 		}
 
 		iterationCount++;
 	}
-
-	// TODO: For test we will remove this line!!!
-	this->timeoutOccured = true;
 }
 
 bool StochasticCellularAutomata::isTimeoutOccured() {
@@ -72,7 +69,7 @@ bool StochasticCellularAutomata::isReachedToStopState(vector<ControlPoint*> &val
 
 	int visitedValidationCellCount = 0;
 
-	for(int i=0; i < validationControlPoints.size(); i++) {
+	for(unsigned int i=0; i < validationControlPoints.size(); i++) {
 
 		ControlPoint *controlPoint = validationControlPoints.at(i);
 		Cell *cell = this->trainingDataset->findCellByHashCode(controlPoint->getHashCodeOfCell());
@@ -103,7 +100,7 @@ void StochasticCellularAutomata::heatPropagation(Cell *cell) {
 		}
 
 		// Propagate heat to neighbours!
-		for(int i=0; i < neighbours.size(); i++) {
+		for(unsigned int i=0; i < neighbours.size(); i++) {
 			Cell* neighbour = neighbours.at(i);
 			if (neighbour != NULL && !neighbour->isInitialState()) {
 				neighbour->setPower(heatAverage);
@@ -126,15 +123,14 @@ void StochasticCellularAutomata::stateTransfer(Cell *cell) {
 
 			vector<Cell*> neighbours = findNeighbours(currentNeighbourCell);
 
-			for(int i=0; i < neighbours.size(); i++) {
+			for(unsigned int i=0; i < neighbours.size(); i++) {
 
 				Cell* neighbour = neighbours.at(i);
 				if(neighbour != NULL && (neighbour->getLabelValue() < 0) && (neighbour->getPower() > this->heatThreshold)) {
 					neighbour->setLabelValue(currentNeighbourCell->getLabelValue());
 					cellQueue.push(neighbour);
 
-					if(neighbour->isInitialState()) {
-
+					/* TODO: It was added for testing!
 						vector<ControlPoint*> validationControlPoints = this->trainingDataset->getValidationControlPoints();
 
 						for(int i=0; i < validationControlPoints.size(); i++) {
@@ -146,7 +142,7 @@ void StochasticCellularAutomata::stateTransfer(Cell *cell) {
 								cout << "CHANGED VALIDATION POINT (ACTUAL): " << neighbour->getLabelValue() << endl;
 							}
 						}
-					}
+					*/
 
 				}
 			}
@@ -219,7 +215,7 @@ float StochasticCellularAutomata::calculateHeatAverage(Cell *cell, vector<Cell*>
 	float totalHeatValue = 0.0f;
 	int neighbourLimit = (2 * this->trainingDataset->getDataDimension()) + 1;
 
-	for(int i=0; i < cells.size(); i++) {
+	for(unsigned int i=0; i < cells.size(); i++) {
 		Cell *cell = cells.at(i);
 		totalHeatValue += cell->getPower();
 	}
@@ -248,7 +244,7 @@ Cell* StochasticCellularAutomata::findNeighbourCell(Cell *emptyCell) {
 
 		vector<Cell*> neighbours = this->findNeighbours(currentNeighbourCell);
 
-		for(int i=0; i < neighbours.size(); i++) {
+		for(unsigned int i=0; i < neighbours.size(); i++) {
 			Cell* neighbourCell = neighbours.at(i);
 
 			if(neighbourCell != NULL && (neighbourCell->getLabelValue() >= 0)) {
@@ -297,7 +293,7 @@ float StochasticCellularAutomata::calculateSuccessRatio(vector<ControlPoint*> &c
 	int correctlyClassifiedCellCount = 0;
 	int totalVisitedTestCellCount = 0;
 
-	for(int i=0; i < controlPoints.size(); i++) {
+	for(unsigned int i=0; i < controlPoints.size(); i++) {
 
 		ControlPoint *controlPoint = controlPoints.at(i);
 
@@ -338,7 +334,7 @@ void StochasticCellularAutomata::determineStateOfEmptyTestCells() {
 
 void StochasticCellularAutomata::determineStateOfEmptyCells(vector<ControlPoint*> &selectedControlPoints) {
 
-	for(int i=0; i < selectedControlPoints.size(); i++) {
+	for(unsigned int i=0; i < selectedControlPoints.size(); i++) {
 
 		ControlPoint* controlPoint = selectedControlPoints.at(i);
 

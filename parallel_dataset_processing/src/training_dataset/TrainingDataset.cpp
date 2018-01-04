@@ -127,7 +127,7 @@ void TrainingDataset::prepareInitialPoints() {
 	for(list<Cell*>::iterator cell = this->allInitialCells->begin(); cell != this->allInitialCells->end(); cell++) {
 
 		if(find(this->selectedControlPointIndexList.begin(),
-						   this->selectedControlPointIndexList.end(), counter) == this->selectedControlPointIndexList.end()) {
+			    this->selectedControlPointIndexList.end(), counter) == this->selectedControlPointIndexList.end()) {
 			this->initialPoints.push_back((*cell));
 		}
 		counter++;
@@ -216,6 +216,7 @@ void TrainingDataset::prepareControlPoints(vector<ControlPoint*> &controlPoints,
 		// Set power value to zero for validation and test control cells!
 		(*cellIterator)->setLabelValue(-1);
 		(*cellIterator)->setPower(0.0f);
+		(*cellIterator)->setInitialState(false);
 
 		ControlPoint *controlPoint = new ControlPoint((*cellIterator)->getHashCode(), (*cellIterator)->getDataRow()->getLabelValue(), controlPointType);
 		controlPoints.push_back(controlPoint);
