@@ -41,8 +41,8 @@ int main() {
 	cout << "Dataset preparing process..." << endl;
 	dataSet->createDataset();
 
-	cout << "Dataset printing process..." << endl;
-	dataSet->printAllDataRows();
+	//cout << "Dataset printing process..." << endl;
+	//dataSet->printAllDataRows();
 
 	int dataDimension = datasetTemplate->getColumnIndexes().size();
 
@@ -51,7 +51,7 @@ int main() {
 	CellListProducer* cellListProducer = new CellListProducer(hashcodeProducer);
 	list<Cell*> cellListForTrainingPhase = cellListProducer->createCellList(dataSet);
 
-	cout << "Cell size: " << cellListForTrainingPhase.size() << endl;
+	//cout << "Cell size: " << cellListForTrainingPhase.size() << endl;
 
 	queue<ExperimentResult> experimentResultQueue;
 	ExperimentApplier *experimentApplier = new ExperimentApplier(dataDimension, &cellListForTrainingPhase);

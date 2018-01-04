@@ -75,7 +75,7 @@ Cell* TrainingDataset::selectRandomCell(int randValue) {
 
 	int randomlySelectedCellIndex = randValue % randomCellSelectionLimit;
 
-	cout << "RANDOMLY SELECTED INDEX : " << randomlySelectedCellIndex << endl;
+//	cout << "RANDOMLY SELECTED INDEX : " << randomlySelectedCellIndex << endl;
 
 	return this->initialCells[randomlySelectedCellIndex];
 }
@@ -180,7 +180,7 @@ void TrainingDataset::prepareInitialCells() {
 		}
 	}
 
-	cout << "ALL INITIAL WAS SCANNED : " << counter << endl;
+//	cout << "ALL INITIAL WAS SCANNED : " << counter << endl;
 }
 
 void TrainingDataset::prepareTestControlPoints() {

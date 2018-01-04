@@ -13,7 +13,7 @@ ExperimentResult::ExperimentResult() {
 }
 
 ExperimentResult::~ExperimentResult() {
-	delete this;
+	//delete this;
 }
 
 void ExperimentResult::setStartTime(long startTime) {

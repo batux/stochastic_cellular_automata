@@ -172,10 +172,6 @@ vector<Cell*> StochasticCellularAutomata::findNeighbours(Cell *cell) {
 
 		vector<int> positions = cell->getPositions();
 
-		if(positions.size() == 0) {
-			cout << "WARNING Empty position list!" << endl;
-		}
-
 		vector<int> positionsOfNeighbour = preparePositionsOfNeighbour(positions, neighbourSideIndex);
 
 		Cell *neighbourCell = findNeighbour(positionsOfNeighbour);
@@ -237,7 +233,7 @@ Cell* StochasticCellularAutomata::findNeighbourCell(Cell *emptyCell) {
 	milliseconds startTimeInMillis = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 	long startTimeAsLong = startTimeInMillis.count();
 
-	while(!foundState) {
+	while(!foundState && (cellQueue.size() > 0)) {
 
 		Cell *currentNeighbourCell = cellQueue.front();
 		cellQueue.pop();
@@ -247,13 +243,16 @@ Cell* StochasticCellularAutomata::findNeighbourCell(Cell *emptyCell) {
 		for(unsigned int i=0; i < neighbours.size(); i++) {
 			Cell* neighbourCell = neighbours.at(i);
 
-			if(neighbourCell != NULL && (neighbourCell->getLabelValue() >= 0)) {
-				foundNeighbourCell = neighbourCell;
-				break;
-			}
-
 			if(neighbourCell != NULL) {
 				cellQueue.push(neighbourCell);
+			}
+
+			if(neighbourCell != NULL && (neighbourCell->getLabelValue() >= 0)) {
+				foundNeighbourCell = neighbourCell;
+				currentNeighbourCell->setLabelValue(neighbourCell->getLabelValue());
+				emptyCell->setLabelValue(neighbourCell->getLabelValue());
+				foundState = true;
+				break;
 			}
 		}
 
@@ -346,7 +345,7 @@ void StochasticCellularAutomata::determineStateOfEmptyCells(vector<ControlPoint*
 
 				// Determine the state of cell from neighbours
 				Cell *neighbourCell = findNeighbourCell(cell);
-				cell->setLabelValue(neighbourCell->getLabelValue());
+				//cell->setLabelValue(neighbourCell->getLabelValue());
 			}
 		}
 	}
